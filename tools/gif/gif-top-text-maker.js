@@ -104,7 +104,7 @@ const load = async () => {
   runBtn.removeAttribute("disabled");
   previewBtn.removeAttribute("disabled");
 
-  fetch("https://xpncvr.github.io/DejaVuSans-Bold.ttf")
+  fetch("https://xpncvr.github.io/assets/font/DejaVuSans-Bold.ttf")
     .then((response) => response.arrayBuffer())
     .then((arrayBuffer) => {
       const uint8Array = new Uint8Array(arrayBuffer);
@@ -167,10 +167,8 @@ const loadPreview = async () => {
       "output2.png",
     ]);
 
-    // Read the extracted image file
     const data = await ffmpeg.readFile("output2.png");
 
-    // Create an object URL from the extracted frame and set it as the preview image
     previewImg.src = URL.createObjectURL(
       new Blob([data.buffer], { type: "image/png" }),
     );
@@ -192,7 +190,7 @@ const reset = async () => {
 
 const download = async () => {
   const link = document.createElement("a");
-  link.href = previewImg;
+  link.href = previewImg.src;
   link.download = "export.gif";
   document.body.appendChild(link);
   link.click();
@@ -232,6 +230,13 @@ const handleFileDrop = async (event) => {
   }
 };
 
+function onTextEnter(event) {
+  if (event.key === "Enter") {
+    loadPreview();
+    event.preventDefault();
+  }
+}
+
 addEventListener("load", async (event) => {
   loadBtn = document.querySelector("#load-button");
   loadBtn.addEventListener("click", async () => await load());
@@ -263,7 +268,9 @@ addEventListener("load", async (event) => {
   previewImg = document.querySelector("#result-image");
 
   inputTxt = document.querySelector("#text-input");
+  inputTxt.addEventListener("keydown", onTextEnter);
   inputSize = document.querySelector("#input-size");
+  inputSize.addEventListener("keydown", onTextEnter);
 
   dropArea = document.querySelector("#drop-area");
   dropArea.addEventListener("dragover", (e) => e.preventDefault());
