@@ -1,0 +1,79 @@
+body {
+    background-color: #000000;
+    font-family: "Arial", sans-serif;
+}
+
+.centre-container {
+    display: grid;
+    grid-auto-flow: column; /* Aligns items in a row */
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
+    height: 95vh;
+    margin: 0;
+}
+
+.button-container {
+    text-align: center;
+}
+
+.button {
+    display: inline-block;
+    padding: 15px 30px;
+    margin: 15px;
+    font-size: 18px;
+    color: #ffffff;
+    background-color: #1e1e1e;
+    border: 2px solid #ffffff;
+    border-radius: 5px;
+    text-decoration: none;
+    transition:
+        transform 0.3s,
+        background-color 0.3s;
+    position: relative;
+}
+
+.button:hover {
+    transform: scale(1.1);
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.button-text {
+    font-size: 24px;
+}
+
+.icon {
+    display: block;
+    margin: 10px auto 0;
+    width: 128px;
+    height: auto;
+    border-radius: 10px;
+    border: 2px solid #ffffff;
+}
+
+.about-me-container {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+}
+
+.about-me-button {
+    color: white;
+    padding: 10px 20px;
+    text-align: center;
+}
+
+.about-me-button:hover {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.popup {
+    display: none;
+    text-align: center;
+    color: white;
+}
+
+.about-me-container:hover .popup,
+.popup:hover {
+    display: block;
+}
