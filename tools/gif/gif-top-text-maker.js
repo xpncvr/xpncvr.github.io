@@ -230,6 +230,44 @@ const handleFileDrop = async (event) => {
   }
 };
 
+const handleFileClick = async () => {
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = "image/gif";
+  input.click();
+
+  input.onchange = async (event) => {
+    const file = event.target.files[0];
+    if (ffmpegLoaded) {
+      if (file.type !== "image/gif") {
+        alert("The selected file type might not be supported.");
+        return;
+      }
+
+      if (file) {
+        dropArea.classList.toggle("hidden");
+        originalImg.classList.toggle("hidden");
+        previewArea.classList.toggle("hidden");
+        previewImg.classList.toggle("hidden");
+        originalImg.src = URL.createObjectURL(file);
+        runBtn.removeAttribute("disabled");
+        previewBtn.removeAttribute("disabled");
+        try {
+          const arrayBuffer = await file.arrayBuffer();
+          const uint8Array = new Uint8Array(arrayBuffer);
+
+          ffmpeg.writeFile("input.gif", uint8Array);
+          hasFileDropped = true;
+
+          loadPreview();
+        } catch (error) {
+          console.error("Error processing file:", error);
+        }
+      }
+    }
+  };
+};
+
 function onTextEnter(event) {
   if (event.key === "Enter") {
     loadPreview();
@@ -275,6 +313,7 @@ addEventListener("load", async (event) => {
   dropArea = document.querySelector("#drop-area");
   dropArea.addEventListener("dragover", (e) => e.preventDefault());
   dropArea.addEventListener("drop", handleFileDrop);
+  dropArea.addEventListener("click", handleFileClick);
 
   console.log("window loaded");
 });
