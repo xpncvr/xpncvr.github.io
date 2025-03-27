@@ -1,0 +1,103 @@
+<!doctype html>
+<html>
+    <head>
+        <script src="gif-top-text-maker.js"></script>
+        <style>
+            .area {
+                border: 2px dashed #ccc;
+                padding: 20px;
+                text-align: center;
+                width: 256px;
+                height: 256px;
+            }
+            .drop-area:hover {
+                transform: scale(1.05);
+                border-color: #666;
+            }
+            .container {
+                display: grid;
+                grid-template-columns: max-content max-content; /* Only as big as needed */
+                align-items: baseline; /* Keeps stuff aligned */
+                gap: 10px; /* Tiny gap to separate them */
+            }
+            .hidden {
+                display: none;
+            }
+            .loader {
+                border: 3px solid #f3f3f3;
+                border-top: 3px solid #3498db;
+                border-radius: 50%;
+                width: 10px;
+                height: 10px;
+                animation: spin 1s linear infinite;
+                display: inline-block;
+            }
+
+            @keyframes spin {
+                0% {
+                    transform: rotate(0deg);
+                }
+                100% {
+                    transform: rotate(360deg);
+                }
+            }
+
+            body {
+                background-color: #f5f5f5;
+            }
+
+            button {
+                padding: 5px;
+                margin-bottom: 15px;
+            }
+
+            textarea {
+                margin-bottom: 15px;
+            }
+
+            input[type="number"] {
+                margin-bottom: 15px;
+            }
+        </style>
+    </head>
+    <body>
+        <button disabled id="load-button">
+            Load ffmpeg-core (uses ~31 MB of bandwith)
+        </button>
+        <span id="load-progress">Load ffmpeg first</span>
+        <div id="loader" class="loader"></div>
+
+        <br />
+        <textarea id="text-input" rows="1" cols="50"></textarea>
+        <br />
+        <label for="quantity">Text size:</label>
+        <input
+            type="number"
+            id="input-size"
+            name="input-size"
+            min="1"
+            max="50"
+            value="35"
+        />
+        <br />
+        <button disabled id="run-button">Make gif</button>
+        <button disabled id="preview-button">Preview</button>
+        <button id="reset-button">Reset</button>
+        <button disabled id="download-button">Download</button>
+        <br />
+        <div class="container">
+            <div id="drop-area" class="area drop-area">
+                <p>Drag & Drop a .gif file here</p>
+            </div>
+            <img src="../../../sus.gif" id="original-image" class="hidden" />
+            <div id="preview-area" class="area">
+                <p>Preview will appear here</p>
+            </div>
+            <img src="../../../preview.gif" id="result-image" class="hidden" />
+        </div>
+
+        <br />
+        <p>Info log:</p>
+        <p id="log-div"></p>
+    </body>
+</html>
