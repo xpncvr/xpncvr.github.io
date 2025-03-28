@@ -19,6 +19,8 @@ var tryMultiThread = true;
 
 var hasFileDropped = false;
 
+var betterWhite = true;
+
 var ffmpegLoaded = false;
 
 const baseURL = "https://xpncvr.github.io/ffmpeg";
@@ -117,21 +119,39 @@ const load = async () => {
 const makeGif = async () => {
   if (hasFileDropped) {
     runBtn.setAttribute("disabled", true);
-    ffmpeg.exec(["-i", "input.gif", "-vf", "palettegen", "palette.png"]);
+    if (betterWhite) {
+      ffmpeg.exec([
+        "-i",
+        "input.gif",
+        "-filter_complex",
+        "[0:v]pad=iw:ih+80:0:80:white,drawtext=text='" +
+          inputTxt.value +
+          "':fontfile=DejaVuSans-Bold.ttf:fontcolor=black:fontsize=" +
+          inputSize.value +
+          ":x=(w-text_w)/2:y=25",
+        "-f",
+        "gif",
+        "-pix_fmt",
+        "rgb24",
+        "output.gif",
+      ]);
+    } else {
+      ffmpeg.exec(["-i", "input.gif", "-vf", "palettegen", "palette.png"]);
 
-    ffmpeg.exec([
-      "-i",
-      "input.gif",
-      "-i",
-      "palette.png",
-      "-filter_complex",
-      "[0:v]pad=iw:ih+80:0:80:white,drawtext=text='" +
-        inputTxt.value +
-        "':fontfile=DejaVuSans-Bold.ttf:fontcolor=black:fontsize=" +
-        inputSize.value +
-        ":x=(w-text_w)/2:y=25[padded];[padded][1:v]paletteuse",
-      "output.gif",
-    ]);
+      ffmpeg.exec([
+        "-i",
+        "input.gif",
+        "-i",
+        "palette.png",
+        "-filter_complex",
+        "[0:v]pad=iw:ih+80:0:80:white,drawtext=text='" +
+          inputTxt.value +
+          "':fontfile=DejaVuSans-Bold.ttf:fontcolor=black:fontsize=" +
+          inputSize.value +
+          ":x=(w-text_w)/2:y=25[padded];[padded][1:v]paletteuse",
+        "output.gif",
+      ]);
+    }
 
     const data = await ffmpeg.readFile("output.gif");
     previewImg.src = URL.createObjectURL(
@@ -155,17 +175,35 @@ const loadPreview = async () => {
       "output.png",
     ]);
 
-    ffmpeg.exec([
-      "-i",
-      "output.png",
-      "-filter_complex",
-      "pad=iw:ih+80:0:80:white,drawtext=text='" +
-        inputTxt.value +
-        "':fontfile=DejaVuSans-Bold.ttf:fontcolor=black:fontsize=" +
-        inputSize.value +
-        ":x=(w-text_w)/2:y=25",
-      "output2.png",
-    ]);
+    if (betterWhite) {
+      ffmpeg.exec([
+        "-i",
+        "output.png",
+        "-filter_complex",
+        "pad=iw:ih+80:0:80:white,drawtext=text='" +
+          inputTxt.value +
+          "':fontfile=DejaVuSans-Bold.ttf:fontcolor=black:fontsize=" +
+          inputSize.value +
+          ":x=(w-text_w)/2:y=25",
+        "output2.png",
+      ]);
+    } else {
+      ffmpeg.exec(["-i", "input.gif", "-vf", "palettegen", "palette.png"]);
+
+      ffmpeg.exec([
+        "-i",
+        "output.png",
+        "-i",
+        "palette.png",
+        "-filter_complex",
+        "pad=iw:ih+80:0:80:white,drawtext=text='" +
+          inputTxt.value +
+          "':fontfile=DejaVuSans-Bold.ttf:fontcolor=black:fontsize=" +
+          inputSize.value +
+          ":x=(w-text_w)/2:y=25[padded];[padded][1:v]paletteuse",
+        "output2.png",
+      ]);
+    }
 
     const data = await ffmpeg.readFile("output2.png");
 
