@@ -269,19 +269,19 @@ const handleFileDrop = async (event) => {
 };
 
 const handleFileClick = async () => {
-  const input = document.createElement("input");
-  input.type = "file";
-  input.accept = "image/gif";
-  input.click();
-
-  input.onchange = async (event) => {
-    const file = event.target.files[0];
-    if (ffmpegLoaded) {
-      if (file.type !== "image/gif") {
-        alert("The selected file type might not be supported.");
-        return;
-      }
-
+  if (ffmpegLoaded) {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/gif";
+    input.click();
+  
+    input.onchange = async (event) => {
+      const file = event.target.files[0];
+        if (file.type !== "image/gif") {
+          alert("The selected file type might not be supported.");
+          return;
+        }
+  
       if (file) {
         dropArea.classList.toggle("hidden");
         originalImg.classList.toggle("hidden");
@@ -293,17 +293,17 @@ const handleFileClick = async () => {
         try {
           const arrayBuffer = await file.arrayBuffer();
           const uint8Array = new Uint8Array(arrayBuffer);
-
+  
           ffmpeg.writeFile("input.gif", uint8Array);
           hasFileDropped = true;
-
+  
           loadPreview();
         } catch (error) {
           console.error("Error processing file:", error);
         }
       }
-    }
-  };
+    };
+  }
 };
 
 function onTextEnter(event) {
