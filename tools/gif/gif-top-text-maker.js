@@ -2,6 +2,7 @@
 // based from https://github.com/ffmpegwasm/ffmpeg.wasm/discussions/580
 var ffmpeg = null;
 var loadBtn = null;
+var betterWhiteBtn = null;
 var loadProrgess = null;
 var loader = null;
 var runBtn = null;
@@ -50,11 +51,7 @@ const load = async () => {
   loadBtn.setAttribute("disabled", true);
   loader.style.display = "inline-block";
   loadProrgess.innerHTML = "Loading progress 0/4";
-  const ffmpegBlobURL = await toBlobURLPatched(
-    `${baseURL}/ffmpeg.js`,
-    "text/javascript",
-    (js) => js.replace("new URL(e.p+e.u(814),e.b)", "r.workerLoadURL"),
-  );
+  const ffmpegBlobURL = await toBlobURLPatched(`${baseURL}/ffmpeg.js`, "text/javascript", (js) => js.replace("new URL(e.p+e.u(814),e.b)", "r.workerLoadURL"));
   await import(ffmpegBlobURL);
   ffmpeg = new FFmpegWASM.FFmpeg();
   ffmpeg.on("log", ({ message }) => {
@@ -71,32 +68,17 @@ const load = async () => {
   if (tryMultiThread && window.crossOriginIsolated) {
     runBtn.innerHTML = "Make gif (multi-threaded)";
     await ffmpeg.load({
-      workerLoadURL: await toBlobURL(
-        `${baseURL}/814.ffmpeg.js`,
-        "text/javascript",
-      ),
+      workerLoadURL: await toBlobURL(`${baseURL}/814.ffmpeg.js`, "text/javascript"),
       coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, "text/javascript"),
-      wasmURL: await toBlobURL(
-        `${baseURL}/ffmpeg-core.wasm`,
-        "application/wasm",
-      ),
-      workerURL: await toBlobURL(
-        `${baseURLCoreMT}/ffmpeg-core.worker.js`,
-        "application/javascript",
-      ),
+      wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, "application/wasm"),
+      workerURL: await toBlobURL(`${baseURLCoreMT}/ffmpeg-core.worker.js`, "application/javascript"),
     });
   } else {
     runBtn.innerHTML = "Make gif (single-threaded)";
     await ffmpeg.load({
-      workerLoadURL: await toBlobURL(
-        `${baseURL}/814.ffmpeg.js`,
-        "text/javascript",
-      ),
+      workerLoadURL: await toBlobURL(`${baseURL}/814.ffmpeg.js`, "text/javascript"),
       coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, "text/javascript"),
-      wasmURL: await toBlobURL(
-        `${baseURL}/ffmpeg-core.wasm`,
-        "application/wasm",
-      ),
+      wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, "application/wasm"),
     });
   }
   loadProrgess.innerHTML = "Loading progress 4/4";
@@ -105,6 +87,7 @@ const load = async () => {
   ffmpegLoaded = true;
   runBtn.removeAttribute("disabled");
   previewBtn.removeAttribute("disabled");
+  betterWhiteBtn.removeAttribute("disabled");
 
   fetch("https://xpncvr.github.io/assets/font/DejaVuSans-Bold.ttf")
     .then((response) => response.arrayBuffer())
@@ -124,11 +107,7 @@ const makeGif = async () => {
         "-i",
         "input.gif",
         "-filter_complex",
-        "[0:v]pad=iw:ih+80:0:80:white,drawtext=text='" +
-          inputTxt.value +
-          "':fontfile=DejaVuSans-Bold.ttf:fontcolor=black:fontsize=" +
-          inputSize.value +
-          ":x=(w-text_w)/2:y=25",
+        "[0:v]pad=iw:ih+80:0:80:white,drawtext=text='" + inputTxt.value + "':fontfile=DejaVuSans-Bold.ttf:fontcolor=black:fontsize=" + inputSize.value + ":x=(w-text_w)/2:y=25",
         "-f",
         "gif",
         "-pix_fmt",
@@ -154,9 +133,7 @@ const makeGif = async () => {
     }
 
     const data = await ffmpeg.readFile("output.gif");
-    previewImg.src = URL.createObjectURL(
-      new Blob([data.buffer], { type: "image/gif" }),
-    );
+    previewImg.src = URL.createObjectURL(new Blob([data.buffer], { type: "image/gif" }));
     runBtn.removeAttribute("disabled");
     downloadBtn.removeAttribute("disabled");
     downloadBtn.removeAttribute("disabled");
@@ -165,26 +142,14 @@ const makeGif = async () => {
 
 const loadPreview = async () => {
   if (hasFileDropped) {
-    await ffmpeg.exec([
-      "-i",
-      "input.gif",
-      "-vf",
-      "select=eq(n\\,0)",
-      "-vframes",
-      "1",
-      "output.png",
-    ]);
+    await ffmpeg.exec(["-i", "input.gif", "-vf", "select=eq(n\\,0)", "-vframes", "1", "output.png"]);
 
     if (betterWhite) {
       ffmpeg.exec([
         "-i",
         "output.png",
         "-filter_complex",
-        "pad=iw:ih+80:0:80:white,drawtext=text='" +
-          inputTxt.value +
-          "':fontfile=DejaVuSans-Bold.ttf:fontcolor=black:fontsize=" +
-          inputSize.value +
-          ":x=(w-text_w)/2:y=25",
+        "pad=iw:ih+80:0:80:white,drawtext=text='" + inputTxt.value + "':fontfile=DejaVuSans-Bold.ttf:fontcolor=black:fontsize=" + inputSize.value + ":x=(w-text_w)/2:y=25",
         "output2.png",
       ]);
     } else {
@@ -207,9 +172,7 @@ const loadPreview = async () => {
 
     const data = await ffmpeg.readFile("output2.png");
 
-    previewImg.src = URL.createObjectURL(
-      new Blob([data.buffer], { type: "image/png" }),
-    );
+    previewImg.src = URL.createObjectURL(new Blob([data.buffer], { type: "image/png" }));
   }
 };
 
@@ -274,14 +237,14 @@ const handleFileClick = async () => {
     input.type = "file";
     input.accept = "image/gif";
     input.click();
-  
+
     input.onchange = async (event) => {
       const file = event.target.files[0];
-        if (file.type !== "image/gif") {
-          alert("The selected file type might not be supported.");
-          return;
-        }
-  
+      if (file.type !== "image/gif") {
+        alert("The selected file type might not be supported.");
+        return;
+      }
+
       if (file) {
         dropArea.classList.toggle("hidden");
         originalImg.classList.toggle("hidden");
@@ -293,10 +256,10 @@ const handleFileClick = async () => {
         try {
           const arrayBuffer = await file.arrayBuffer();
           const uint8Array = new Uint8Array(arrayBuffer);
-  
+
           ffmpeg.writeFile("input.gif", uint8Array);
           hasFileDropped = true;
-  
+
           loadPreview();
         } catch (error) {
           console.error("Error processing file:", error);
@@ -321,6 +284,12 @@ addEventListener("load", async (event) => {
   loadProrgess = document.querySelector("#load-progress");
   loader = document.querySelector("#loader");
   loader.style.display = "none";
+
+  betterWhiteBtn = document.querySelector("#better-white");
+  betterWhiteBtn.addEventListener("click", () => {
+    betterWhite = !betterWhite;
+  });
+  betterWhiteBtn.setAttribute("disabled", true);
 
   runBtn = document.querySelector("#run-button");
   runBtn.addEventListener("click", async () => await makeGif());
