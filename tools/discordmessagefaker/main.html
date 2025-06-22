@@ -39,7 +39,7 @@
 
         const data = event.data;
         if (data.type === "injectMessage") {
-          injectMessage(data.url, data.name, data.message, data.id);
+          injectMessage(data.url, data.name, data.message, data.id, data.time);
         }
         else if (data.type === "initUser") {
           initUser(data.name, data.url);
@@ -52,7 +52,7 @@
       let lastId = 0;
 
 
-      function injectMessage (url, name, message, id) {
+      function injectMessage (url, name, message, id, time) {
         let target = document.querySelector(".scrollerInner__36d07");
         if (!target) {
           alert("Something went wrong target element not found.");
@@ -76,7 +76,7 @@
                 <div class="message__5126c cozyMessage__5126c groupStart__5126c wrapper_c19a55 cozy_c19a55 zalgo_c19a55">
                   <div class="contents_c19a55">
                       <img class="avatar_c19a55 clickable_c19a55" src="${escapeHtml(url)}">
-                      <h3 class="header_c19a55"><span class="headerText_c19a55"><span class="username_c19a55 desaturateUserColors__41f68 clickable_c19a55">${escapeHtml(name)}</span></span><span class="timestamp_c19a55 timestampInline_c19a55"><i class="separator_c19a55"> — </i>13:42</span></h3>
+                      <h3 class="header_c19a55"><span class="headerText_c19a55"><span class="username_c19a55 desaturateUserColors__41f68 clickable_c19a55">${escapeHtml(name)}</span></span><span class="timestamp_c19a55 timestampInline_c19a55"><i class="separator_c19a55"> — </i>${time}</span></h3>
                       <div class="markup__75297 messageContent_c19a55"><span>${escapeHtml(message)}</span></div>
                   </div>
                 </div>
