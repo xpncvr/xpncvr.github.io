@@ -45,6 +45,13 @@
         box-sizing: border-box;
       }
 
+      input[type="time"] {
+        border: 1px solid #555;
+        border-radius: 4px;
+        background-color: #2e2e2e;
+        color: white;
+      }
+
       #userList {
         display: flex;
         gap: 10px;
@@ -140,6 +147,8 @@
       <h2>Send Message</h2>
       <label for="message">Message:</label>
       <input type="text" id="message" />
+      <label for="time">Time:</label>
+      <input type="time" id="time" />
       <button onclick="sendMessage()">Send</button>
       <div id="removeUser" onclick="removeUser()">Remove User</div>
     </div>
@@ -227,6 +236,8 @@
         document.getElementById("createUserForm").style.display = "none";
         document.getElementById("sendMessageForm").style.display = "block";
 
+        setDefaultTime();
+
         const messageInput = document.getElementById("message");
         messageInput.focus();
 
@@ -243,6 +254,7 @@
 
       function sendMessage() {
         const msg = document.getElementById("message").value;
+        const time = document.getElementById("time").value;
         if (!msg || !selectedUser) return;
 
         window.opener.postMessage(
@@ -252,6 +264,7 @@
             name: selectedUser.name,
             message: msg,
             id: selectedUser.id,
+            time: time,
           },
           "*",
         );
@@ -288,6 +301,13 @@
         renderUsers();
         document.getElementById("sendMessageForm").style.display = "none";
         document.getElementById("createUserForm").style.display = "block";
+      }
+      function setDefaultTime() {
+        const timeInput = document.getElementById("time");
+        const now = new Date();
+        const hours = now.getHours().toString().padStart(2, "0");
+        const minutes = now.getMinutes().toString().padStart(2, "0");
+        timeInput.value = `${hours}:${minutes}`;
       }
     </script>
   </body>
