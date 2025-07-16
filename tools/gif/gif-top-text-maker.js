@@ -102,32 +102,28 @@ const load = async () => {
 const makeGif = async () => {
   if (hasFileDropped) {
     runBtn.setAttribute("disabled", true);
+
+    const lines = inputTxt.value.split("\n");
+    const fontSize = parseInt(inputSize.value);
+    const padHeight = lines.length * fontSize + 10;
+
+    let drawTextFilters = lines
+      .map((line, i) => {
+        return `drawtext=text='${line}':fontfile=DejaVuSans-Bold.ttf:fontcolor=black:fontsize=${fontSize}:x=(w-text_w)/2:y=${10 + i * fontSize}`;
+      })
+      .join(",");
+
     if (betterWhite) {
-      ffmpeg.exec([
-        "-i",
-        "input.gif",
-        "-filter_complex",
-        "[0:v]pad=iw:ih+80:0:80:white,drawtext=text='" + inputTxt.value + "':fontfile=DejaVuSans-Bold.ttf:fontcolor=black:fontsize=" + inputSize.value + ":x=(w-text_w)/2:y=25",
-        "-f",
-        "gif",
-        "-pix_fmt",
-        "rgb24",
-        "output.gif",
-      ]);
+      ffmpeg.exec(["-i", "input.gif", "-filter_complex", `[0:v]pad=iw:ih+${padHeight}:0:${padHeight}:white,${drawTextFilters}`, "-f", "gif", "-pix_fmt", "rgb24", "output.gif"]);
     } else {
       ffmpeg.exec(["-i", "input.gif", "-vf", "palettegen", "palette.png"]);
-
       ffmpeg.exec([
         "-i",
         "input.gif",
         "-i",
         "palette.png",
         "-filter_complex",
-        "[0:v]pad=iw:ih+80:0:80:white,drawtext=text='" +
-          inputTxt.value +
-          "':fontfile=DejaVuSans-Bold.ttf:fontcolor=black:fontsize=" +
-          inputSize.value +
-          ":x=(w-text_w)/2:y=25[padded];[padded][1:v]paletteuse",
+        `[0:v]pad=iw:ih+${padHeight}:0:${padHeight}:white,${drawTextFilters}[p];[p][1:v]paletteuse`,
         "output.gif",
       ]);
     }
@@ -136,7 +132,6 @@ const makeGif = async () => {
     previewImg.src = URL.createObjectURL(new Blob([data.buffer], { type: "image/gif" }));
     runBtn.removeAttribute("disabled");
     downloadBtn.removeAttribute("disabled");
-    downloadBtn.removeAttribute("disabled");
   }
 };
 
@@ -144,34 +139,32 @@ const loadPreview = async () => {
   if (hasFileDropped) {
     await ffmpeg.exec(["-i", "input.gif", "-vf", "select=eq(n\\,0)", "-vframes", "1", "output.png"]);
 
+    const lines = inputTxt.value.split("\n");
+    const fontSize = parseInt(inputSize.value);
+    const padHeight = lines.length * fontSize + 10;
+
+    const drawTextFilters = lines
+      .map((line, i) => {
+        return `drawtext=text='${line}':fontfile=DejaVuSans-Bold.ttf:fontcolor=black:fontsize=${fontSize}:x=(w-text_w)/2:y=${10 + i * fontSize}`;
+      })
+      .join(",");
+
     if (betterWhite) {
-      ffmpeg.exec([
-        "-i",
-        "output.png",
-        "-filter_complex",
-        "pad=iw:ih+80:0:80:white,drawtext=text='" + inputTxt.value + "':fontfile=DejaVuSans-Bold.ttf:fontcolor=black:fontsize=" + inputSize.value + ":x=(w-text_w)/2:y=25",
-        "output2.png",
-      ]);
+      ffmpeg.exec(["-i", "output.png", "-filter_complex", `pad=iw:ih+${padHeight}:0:${padHeight}:white,${drawTextFilters}`, "output2.png"]);
     } else {
       ffmpeg.exec(["-i", "input.gif", "-vf", "palettegen", "palette.png"]);
-
       ffmpeg.exec([
         "-i",
         "output.png",
         "-i",
         "palette.png",
         "-filter_complex",
-        "pad=iw:ih+80:0:80:white,drawtext=text='" +
-          inputTxt.value +
-          "':fontfile=DejaVuSans-Bold.ttf:fontcolor=black:fontsize=" +
-          inputSize.value +
-          ":x=(w-text_w)/2:y=25[padded];[padded][1:v]paletteuse",
+        `pad=iw:ih+${padHeight}:0:${padHeight}:white,${drawTextFilters}[padded];[padded][1:v]paletteuse`,
         "output2.png",
       ]);
     }
 
     const data = await ffmpeg.readFile("output2.png");
-
     previewImg.src = URL.createObjectURL(new Blob([data.buffer], { type: "image/png" }));
   }
 };
@@ -232,14 +225,14 @@ const handleFileDrop = async (event) => {
 };
 
 const handleFileClick = async () => {
-  if (ffmpegLoaded) {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = "image/gif";
-    input.click();
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = "image/gif";
+  input.click();
 
-    input.onchange = async (event) => {
-      const file = event.target.files[0];
+  input.onchange = async (event) => {
+    const file = event.target.files[0];
+    if (ffmpegLoaded) {
       if (file.type !== "image/gif") {
         alert("The selected file type might not be supported.");
         return;
@@ -265,8 +258,8 @@ const handleFileClick = async () => {
           console.error("Error processing file:", error);
         }
       }
-    };
-  }
+    }
+  };
 };
 
 function onTextEnter(event) {
@@ -313,7 +306,6 @@ addEventListener("load", async (event) => {
   previewImg = document.querySelector("#result-image");
 
   inputTxt = document.querySelector("#text-input");
-  inputTxt.addEventListener("keydown", onTextEnter);
   inputSize = document.querySelector("#input-size");
   inputSize.addEventListener("keydown", onTextEnter);
 
