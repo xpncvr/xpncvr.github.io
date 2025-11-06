@@ -62,9 +62,13 @@
                 max-width: 270px;
             }
 
-            input[type="number"] {
-                margin-bottom: 15px;
+            input[type="range"] {
+              height: 5px;
+              -webkit-appearance: none;
+              background: #ccc;
+              border-radius: 4px;
             }
+
         </style>
     </head>
     <body>
@@ -74,7 +78,6 @@
         <span id="load-progress">Load ffmpeg first</span>
         <div id="loader" class="loader"></div>
         <br />
-
         <textarea id="text-input" rows="3" cols="50"></textarea>
         <br />
         <label title="Disable the color palette if colors are weird, usually you don't need to do this">Disable palette:</label>
@@ -89,6 +92,11 @@
             max="50"
             value="35"
         />
+        <br />
+        <label for="line-spacing">Line spacing:</label>
+        <input type="range" name="line-spacing" min="1" max="50" value="10" step="1" autocomplete="off" oninput="this.nextElementSibling.value = this.value">
+        <output class="slider-value" for="line-spacing" id="line-spacing">10</output>
+        <br />
         <br />
         <button disabled id="run-button">Make gif</button>
         <button disabled id="preview-button">Preview</button>
