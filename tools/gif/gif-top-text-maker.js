@@ -3,6 +3,7 @@
 var ffmpeg = null;
 var loadBtn = null;
 var betterWhiteBtn = null;
+var lineSpacingValue = null;
 var loadProrgess = null;
 var loader = null;
 var runBtn = null;
@@ -105,11 +106,12 @@ const makeGif = async () => {
 
     const lines = inputTxt.value.split("\n");
     const fontSize = parseInt(inputSize.value);
-    const padHeight = lines.length * fontSize + 10;
+    const lineSpacing = parseInt(lineSpacingValue.value, 10);
+    const padHeight = lines.length * fontSize + lines.length * lineSpacing;
 
-    let drawTextFilters = lines
+    const drawTextFilters = lines
       .map((line, i) => {
-        return `drawtext=text='${line}':fontfile=DejaVuSans-Bold.ttf:fontcolor=black:fontsize=${fontSize}:x=(w-text_w)/2:y=${10 + i * fontSize}`;
+        return `drawtext=text='${line}':fontfile=DejaVuSans-Bold.ttf:fontcolor=black:fontsize=${fontSize}:x=(w-text_w)/2:y=${lineSpacing + i * (fontSize + lineSpacing)}`;
       })
       .join(",");
 
@@ -141,11 +143,12 @@ const loadPreview = async () => {
 
     const lines = inputTxt.value.split("\n");
     const fontSize = parseInt(inputSize.value);
-    const padHeight = lines.length * fontSize + 10;
+    const lineSpacing = parseInt(lineSpacingValue.value, 10);
+    const padHeight = lines.length * fontSize + lines.length * lineSpacing;
 
     const drawTextFilters = lines
       .map((line, i) => {
-        return `drawtext=text='${line}':fontfile=DejaVuSans-Bold.ttf:fontcolor=black:fontsize=${fontSize}:x=(w-text_w)/2:y=${10 + i * fontSize}`;
+        return `drawtext=text='${line}':fontfile=DejaVuSans-Bold.ttf:fontcolor=black:fontsize=${fontSize}:x=(w-text_w)/2:y=${lineSpacing + i * (fontSize + lineSpacing)}`;
       })
       .join(",");
 
@@ -283,6 +286,8 @@ addEventListener("load", async (event) => {
     betterWhite = !betterWhite;
   });
   betterWhiteBtn.setAttribute("disabled", true);
+
+  lineSpacingValue = document.querySelector("#line-spacing");
 
   runBtn = document.querySelector("#run-button");
   runBtn.addEventListener("click", async () => await makeGif());
