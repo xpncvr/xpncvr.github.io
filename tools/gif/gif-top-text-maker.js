@@ -2,6 +2,8 @@
 // based from https://github.com/ffmpegwasm/ffmpeg.wasm/discussions/580
 var ffmpeg = null;
 var loadBtn = null;
+var betterWhiteBtn = null;
+var lineSpacingValue = null;
 var loadProrgess = null;
 var loader = null;
 var runBtn = null;
@@ -50,11 +52,7 @@ const load = async () => {
   loadBtn.setAttribute("disabled", true);
   loader.style.display = "inline-block";
   loadProrgess.innerHTML = "Loading progress 0/4";
-  const ffmpegBlobURL = await toBlobURLPatched(
-    `${baseURL}/ffmpeg.js`,
-    "text/javascript",
-    (js) => js.replace("new URL(e.p+e.u(814),e.b)", "r.workerLoadURL"),
-  );
+  const ffmpegBlobURL = await toBlobURLPatched(`${baseURL}/ffmpeg.js`, "text/javascript", (js) => js.replace("new URL(e.p+e.u(814),e.b)", "r.workerLoadURL"));
   await import(ffmpegBlobURL);
   ffmpeg = new FFmpegWASM.FFmpeg();
   ffmpeg.on("log", ({ message }) => {
@@ -71,32 +69,17 @@ const load = async () => {
   if (tryMultiThread && window.crossOriginIsolated) {
     runBtn.innerHTML = "Make gif (multi-threaded)";
     await ffmpeg.load({
-      workerLoadURL: await toBlobURL(
-        `${baseURL}/814.ffmpeg.js`,
-        "text/javascript",
-      ),
+      workerLoadURL: await toBlobURL(`${baseURL}/814.ffmpeg.js`, "text/javascript"),
       coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, "text/javascript"),
-      wasmURL: await toBlobURL(
-        `${baseURL}/ffmpeg-core.wasm`,
-        "application/wasm",
-      ),
-      workerURL: await toBlobURL(
-        `${baseURLCoreMT}/ffmpeg-core.worker.js`,
-        "application/javascript",
-      ),
+      wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, "application/wasm"),
+      workerURL: await toBlobURL(`${baseURLCoreMT}/ffmpeg-core.worker.js`, "application/javascript"),
     });
   } else {
     runBtn.innerHTML = "Make gif (single-threaded)";
     await ffmpeg.load({
-      workerLoadURL: await toBlobURL(
-        `${baseURL}/814.ffmpeg.js`,
-        "text/javascript",
-      ),
+      workerLoadURL: await toBlobURL(`${baseURL}/814.ffmpeg.js`, "text/javascript"),
       coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, "text/javascript"),
-      wasmURL: await toBlobURL(
-        `${baseURL}/ffmpeg-core.wasm`,
-        "application/wasm",
-      ),
+      wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, "application/wasm"),
     });
   }
   loadProrgess.innerHTML = "Loading progress 4/4";
@@ -105,6 +88,7 @@ const load = async () => {
   ffmpegLoaded = true;
   runBtn.removeAttribute("disabled");
   previewBtn.removeAttribute("disabled");
+  betterWhiteBtn.removeAttribute("disabled");
 
   fetch("https://xpncvr.github.io/assets/font/DejaVuSans-Bold.ttf")
     .then((response) => response.arrayBuffer())
@@ -119,97 +103,72 @@ const load = async () => {
 const makeGif = async () => {
   if (hasFileDropped) {
     runBtn.setAttribute("disabled", true);
+
+    const lines = inputTxt.value.split("\n");
+    const fontSize = parseInt(inputSize.value);
+    const lineSpacing = parseInt(lineSpacingValue.value, 10);
+    const padHeight = lines.length * fontSize + lines.length * lineSpacing;
+
+    const drawTextFilters = lines
+      .map((line, i) => {
+        return `drawtext=text='${line}':fontfile=DejaVuSans-Bold.ttf:fontcolor=black:fontsize=${fontSize}:x=(w-text_w)/2:y=${lineSpacing + i * (fontSize + lineSpacing)}`;
+      })
+      .join(",");
+
     if (betterWhite) {
-      ffmpeg.exec([
-        "-i",
-        "input.gif",
-        "-filter_complex",
-        "[0:v]pad=iw:ih+80:0:80:white,drawtext=text='" +
-          inputTxt.value +
-          "':fontfile=DejaVuSans-Bold.ttf:fontcolor=black:fontsize=" +
-          inputSize.value +
-          ":x=(w-text_w)/2:y=25",
-        "-f",
-        "gif",
-        "-pix_fmt",
-        "rgb24",
-        "output.gif",
-      ]);
+      ffmpeg.exec(["-i", "input.gif", "-filter_complex", `[0:v]pad=iw:ih+${padHeight}:0:${padHeight}:white,${drawTextFilters}`, "-f", "gif", "-pix_fmt", "rgb24", "output.gif"]);
     } else {
       ffmpeg.exec(["-i", "input.gif", "-vf", "palettegen", "palette.png"]);
-
       ffmpeg.exec([
         "-i",
         "input.gif",
         "-i",
         "palette.png",
         "-filter_complex",
-        "[0:v]pad=iw:ih+80:0:80:white,drawtext=text='" +
-          inputTxt.value +
-          "':fontfile=DejaVuSans-Bold.ttf:fontcolor=black:fontsize=" +
-          inputSize.value +
-          ":x=(w-text_w)/2:y=25[padded];[padded][1:v]paletteuse",
+        `[0:v]pad=iw:ih+${padHeight}:0:${padHeight}:white,${drawTextFilters}[p];[p][1:v]paletteuse`,
         "output.gif",
       ]);
     }
 
     const data = await ffmpeg.readFile("output.gif");
-    previewImg.src = URL.createObjectURL(
-      new Blob([data.buffer], { type: "image/gif" }),
-    );
+    previewImg.src = URL.createObjectURL(new Blob([data.buffer], { type: "image/gif" }));
     runBtn.removeAttribute("disabled");
-    downloadBtn.removeAttribute("disabled");
     downloadBtn.removeAttribute("disabled");
   }
 };
 
 const loadPreview = async () => {
   if (hasFileDropped) {
-    await ffmpeg.exec([
-      "-i",
-      "input.gif",
-      "-vf",
-      "select=eq(n\\,0)",
-      "-vframes",
-      "1",
-      "output.png",
-    ]);
+    await ffmpeg.exec(["-i", "input.gif", "-vf", "select=eq(n\\,0)", "-vframes", "1", "output.png"]);
+
+    const lines = inputTxt.value.split("\n");
+    const fontSize = parseInt(inputSize.value);
+    const lineSpacing = parseInt(lineSpacingValue.value, 10);
+    const padHeight = lines.length * fontSize + lines.length * lineSpacing;
+
+    const drawTextFilters = lines
+      .map((line, i) => {
+        return `drawtext=text='${line}':fontfile=DejaVuSans-Bold.ttf:fontcolor=black:fontsize=${fontSize}:x=(w-text_w)/2:y=${lineSpacing + i * (fontSize + lineSpacing)}`;
+      })
+      .join(",");
 
     if (betterWhite) {
-      ffmpeg.exec([
-        "-i",
-        "output.png",
-        "-filter_complex",
-        "pad=iw:ih+80:0:80:white,drawtext=text='" +
-          inputTxt.value +
-          "':fontfile=DejaVuSans-Bold.ttf:fontcolor=black:fontsize=" +
-          inputSize.value +
-          ":x=(w-text_w)/2:y=25",
-        "output2.png",
-      ]);
+      ffmpeg.exec(["-i", "output.png", "-filter_complex", `pad=iw:ih+${padHeight}:0:${padHeight}:white,${drawTextFilters}`, "output2.png"]);
     } else {
       ffmpeg.exec(["-i", "input.gif", "-vf", "palettegen", "palette.png"]);
-
       ffmpeg.exec([
         "-i",
         "output.png",
         "-i",
         "palette.png",
         "-filter_complex",
-        "pad=iw:ih+80:0:80:white,drawtext=text='" +
-          inputTxt.value +
-          "':fontfile=DejaVuSans-Bold.ttf:fontcolor=black:fontsize=" +
-          inputSize.value +
-          ":x=(w-text_w)/2:y=25[padded];[padded][1:v]paletteuse",
+        `pad=iw:ih+${padHeight}:0:${padHeight}:white,${drawTextFilters}[padded];[padded][1:v]paletteuse`,
         "output2.png",
       ]);
     }
 
     const data = await ffmpeg.readFile("output2.png");
-
-    previewImg.src = URL.createObjectURL(
-      new Blob([data.buffer], { type: "image/png" }),
-    );
+    previewImg.src = URL.createObjectURL(new Blob([data.buffer], { type: "image/png" }));
   }
 };
 
@@ -322,6 +281,14 @@ addEventListener("load", async (event) => {
   loader = document.querySelector("#loader");
   loader.style.display = "none";
 
+  betterWhiteBtn = document.querySelector("#better-white");
+  betterWhiteBtn.addEventListener("click", () => {
+    betterWhite = !betterWhite;
+  });
+  betterWhiteBtn.setAttribute("disabled", true);
+
+  lineSpacingValue = document.querySelector("#line-spacing");
+
   runBtn = document.querySelector("#run-button");
   runBtn.addEventListener("click", async () => await makeGif());
   runBtn.setAttribute("disabled", true);
@@ -344,7 +311,6 @@ addEventListener("load", async (event) => {
   previewImg = document.querySelector("#result-image");
 
   inputTxt = document.querySelector("#text-input");
-  inputTxt.addEventListener("keydown", onTextEnter);
   inputSize = document.querySelector("#input-size");
   inputSize.addEventListener("keydown", onTextEnter);
 
