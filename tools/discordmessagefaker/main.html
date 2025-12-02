@@ -128,8 +128,10 @@
             if (event.key === 'Enter') { //todo: handle backspace blank
               if (textAreaHolder.style.display == 'none') {
                 textAreaHolder.style.display = 'block';
-                console.log(editableDiv.textContent);
-                injectMessage(myAvatarUrl, myName, editableDiv.textContent, myId);
+                const now = new Date();
+                const hours = now.getHours().toString().padStart(2, "0");
+                const minutes = now.getMinutes().toString().padStart(2, "0");
+                injectMessage(myAvatarUrl, myName, editableDiv.textContent, myId, `${hours}:${minutes}`);
                 editableDiv.textContent = "";
               }
               event.preventDefault();
