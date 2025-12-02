@@ -1,0 +1,314 @@
+<!doctype html>
+<html>
+  <head>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+        background-color: #1e1e1e;
+        color: #fff;
+      }
+
+      button {
+        padding: 10px 20px;
+        background-color: #5865f2;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+      }
+
+      button:hover {
+        background-color: #434cba;
+      }
+
+      #modeSelect {
+        margin-bottom: 30px;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 10px;
+        font-weight: bold;
+      }
+
+      input[type="text"] {
+        width: 95%;
+        padding: 8px;
+        margin-top: 4px;
+        margin-bottom: 15px;
+        border: 1px solid #555;
+        border-radius: 4px;
+        background-color: #2e2e2e;
+        color: white;
+        box-sizing: border-box;
+      }
+
+      input[type="time"] {
+        border: 1px solid #555;
+        border-radius: 4px;
+        background-color: #2e2e2e;
+        color: white;
+      }
+
+      #userList {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+      }
+
+      .user {
+        display: flex;
+        align-items: center;
+        background-color: #333;
+        padding: 8px 12px;
+        border-radius: 20px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+      }
+
+      .user:hover {
+        background-color: #444;
+      }
+
+      .user img {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        margin-right: 8px;
+      }
+
+      .plus-user {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #333;
+        width: 46px;
+        height: 46px;
+        border-radius: 50%;
+        font-size: 24px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+      }
+
+      .plus-user:hover {
+        background-color: #444;
+      }
+
+      #createUserForm,
+      #sendMessageForm {
+        margin-bottom: 20px;
+      }
+
+      #removeUser {
+        color: #aaa;
+        text-decoration: underline;
+        cursor: pointer;
+        margin-top: 10px;
+        font-size: 13px;
+      }
+
+      #removeUser:hover {
+        color: #ccc;
+      }
+
+      #usernamePrompt {
+        margin-bottom: 10px;
+        font-style: italic;
+        font-size: 15px;
+        color: #bbb;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="modeSelect">
+      <button onclick="setMode('any')">Any mode</button>
+      <button onclick="setMode('talking')">One on one mode</button>
+    </div>
+
+    <div id="userList"></div>
+
+    <div id="createUserForm" style="display: none">
+      <h2>Add User</h2>
+      <div id="usernamePrompt" style="display: none"></div>
+
+      <label for="url">Image URL:</label>
+      <input type="text" id="url" />
+
+      <label for="name">Name:</label>
+      <input type="text" id="name" />
+      <br />
+      <button onclick="createUser()">Create User</button>
+    </div>
+
+    <div id="sendMessageForm" style="display: none">
+      <h2>Send Message</h2>
+      <label for="message">Message:</label>
+      <input type="text" id="message" />
+      <label for="time">Time:</label>
+      <input type="time" id="time" />
+      <button onclick="sendMessage()">Send</button>
+      <div id="removeUser" onclick="removeUser()">Remove User</div>
+    </div>
+
+    <script>
+      const users = [];
+      let selectedUser = null;
+      let mode = null;
+      let userCount = 0;
+      const maxUsers = 2;
+
+      function setMode(selectedMode) {
+        mode = selectedMode;
+        document.getElementById("modeSelect").style.display = "none";
+        document.getElementById("createUserForm").style.display = "block";
+
+        if (mode === "talking") {
+          userCount = 0;
+          promptNextUser();
+        }
+      }
+
+      function promptNextUser() {
+        const promptText = userCount === 0 ? "What is your username?" : "Enter another user's name:";
+        document.getElementById("usernamePrompt").innerText = promptText;
+        document.getElementById("usernamePrompt").style.display = "block";
+        document.getElementById("url").value = "";
+        document.getElementById("name").value = "";
+      }
+
+      function createUser() {
+        const url = document.getElementById("url").value;
+        const name = document.getElementById("name").value;
+        if (!url || !name) return;
+
+        const id = Date.now() + userCount; // todo: maybge just do usercount
+        const user = { url, name, id };
+        users.push(user);
+        renderUsers();
+
+        if (mode === "talking") {
+          userCount++;
+          if (userCount == 1) {
+            initSelfUser(name, url, id);
+
+            promptNextUser();
+          } else {
+            initUser(name, url);
+
+            document.getElementById("createUserForm").style.display = "none";
+            document.getElementById("usernamePrompt").style.display = "none";
+          }
+        } else {
+          document.getElementById("usernamePrompt").style.display = "none";
+        }
+        document.getElementById("url").value = "";
+        document.getElementById("name").value = "";
+      }
+
+      function renderUsers() {
+        const userList = document.getElementById("userList");
+        userList.innerHTML = "";
+
+        const plus = document.createElement("div");
+        plus.className = "plus-user";
+        plus.innerHTML = "+";
+        plus.onclick = () => {
+          selectedUser = null;
+          document.getElementById("sendMessageForm").style.display = "none";
+          document.getElementById("createUserForm").style.display = "block";
+        };
+        userList.appendChild(plus);
+
+        users.forEach((user, index) => {
+          const div = document.createElement("div");
+          div.className = "user";
+          div.innerHTML = `<img src="${user.url}" alt="${user.name}" /><span>${user.name}</span>`;
+          div.onclick = () => selectUser(index);
+          userList.appendChild(div);
+        });
+      }
+
+      function selectUser(index) {
+        selectedUser = users[index];
+        document.getElementById("createUserForm").style.display = "none";
+        document.getElementById("sendMessageForm").style.display = "block";
+
+        setDefaultTime();
+
+        const messageInput = document.getElementById("message");
+        messageInput.focus();
+
+        messageInput.onkeydown = null;
+
+        messageInput.onkeydown = function (e) {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            sendMessage();
+            messageInput.focus();
+          }
+        };
+      }
+
+      function sendMessage() {
+        const msg = document.getElementById("message").value;
+        const time = document.getElementById("time").value;
+        if (!msg || !selectedUser) return;
+
+        window.opener.postMessage(
+          {
+            type: "injectMessage",
+            url: selectedUser.url,
+            name: selectedUser.name,
+            message: msg,
+            id: selectedUser.id,
+            time: time,
+          },
+          "*",
+        );
+
+        document.getElementById("message").value = "";
+      }
+
+      function initUser(name, avatarURL) {
+        window.opener.postMessage(
+          {
+            type: "initUser",
+            url: avatarURL,
+            name: name,
+          },
+          "*",
+        );
+      }
+      function initSelfUser(name, avatarURL) {
+        window.opener.postMessage(
+          {
+            type: "initSelfUser",
+            url: avatarURL,
+            name: name,
+          },
+          "*",
+        );
+      }
+
+      function removeUser() {
+        if (!selectedUser) return;
+        const index = users.findIndex((u) => u.id === selectedUser.id);
+        if (index > -1) users.splice(index, 1);
+        selectedUser = null;
+        renderUsers();
+        document.getElementById("sendMessageForm").style.display = "none";
+        document.getElementById("createUserForm").style.display = "block";
+      }
+      function setDefaultTime() {
+        const timeInput = document.getElementById("time");
+        const now = new Date();
+        const hours = now.getHours().toString().padStart(2, "0");
+        const minutes = now.getMinutes().toString().padStart(2, "0");
+        timeInput.value = `${hours}:${minutes}`;
+      }
+    </script>
+  </body>
+</html>
