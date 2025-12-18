@@ -2,14 +2,14 @@
 <html>
   <head>
     <style>
-      body {
+      .body {
         font-family: Arial, sans-serif;
         padding: 20px;
         background-color: #1e1e1e;
         color: #fff;
       }
 
-      button {
+      .button {
         padding: 10px 20px;
         background-color: #5865f2;
         color: white;
@@ -19,21 +19,21 @@
         font-size: 14px;
       }
 
-      button:hover {
+      .button:hover {
         background-color: #434cba;
       }
 
-      #modeSelect {
+      .mode-select {
         margin-bottom: 30px;
       }
 
-      label {
+      .label {
         display: block;
         margin-bottom: 10px;
         font-weight: bold;
       }
 
-      input[type="text"] {
+      .input-text {
         width: 95%;
         padding: 8px;
         margin-top: 4px;
@@ -45,14 +45,14 @@
         box-sizing: border-box;
       }
 
-      input[type="time"] {
+      .input-time {
         border: 1px solid #555;
         border-radius: 4px;
         background-color: #2e2e2e;
         color: white;
       }
 
-      #userList {
+      .user-list {
         display: flex;
         gap: 10px;
         margin-bottom: 20px;
@@ -73,7 +73,7 @@
         background-color: #444;
       }
 
-      .user img {
+      .user-avatar {
         width: 30px;
         height: 30px;
         border-radius: 50%;
@@ -97,12 +97,15 @@
         background-color: #444;
       }
 
-      #createUserForm,
-      #sendMessageForm {
+      .form {
         margin-bottom: 20px;
       }
 
-      #removeUser {
+      .hidden {
+        display: none;
+      }
+
+      .remove-user {
         color: #aaa;
         text-decoration: underline;
         cursor: pointer;
@@ -110,11 +113,11 @@
         font-size: 13px;
       }
 
-      #removeUser:hover {
+      .remove-user:hover {
         color: #ccc;
       }
 
-      #usernamePrompt {
+      .username-prompt {
         margin-bottom: 10px;
         font-style: italic;
         font-size: 15px;
@@ -122,35 +125,35 @@
       }
     </style>
   </head>
-  <body>
-    <div id="modeSelect">
-      <button onclick="setMode('any')">Any mode</button>
-      <button onclick="setMode('talking')">One on one mode</button>
+  <body class="body">
+    <div class="mode-select">
+      <button class="button" onclick="setMode('any')">Any mode</button>
+      <button class="button" onclick="setMode('talking')">One on one mode</button>
     </div>
 
-    <div id="userList"></div>
+    <div class="user-list"></div>
 
-    <div id="createUserForm" style="display: none">
+    <div class="form create-user-form hidden">
       <h2>Add User</h2>
-      <div id="usernamePrompt" style="display: none"></div>
+      <div class="username-prompt hidden"></div>
 
-      <label for="url">Image URL:</label>
-      <input type="text" id="url" />
+      <label class="label">Image URL:</label>
+      <input class="input-text url-input" type="text" />
 
-      <label for="name">Name:</label>
-      <input type="text" id="name" />
+      <label class="label">Name:</label>
+      <input class="input-text name-input" type="text" />
       <br />
-      <button onclick="createUser()">Create User</button>
+      <button class="button" onclick="createUser()">Create User</button>
     </div>
 
-    <div id="sendMessageForm" style="display: none">
+    <div class="form send-message-form hidden">
       <h2>Send Message</h2>
-      <label for="message">Message:</label>
-      <input type="text" id="message" />
-      <label for="time">Time:</label>
-      <input type="time" id="time" />
-      <button onclick="sendMessage()">Send</button>
-      <div id="removeUser" onclick="removeUser()">Remove User</div>
+      <label class="label">Message:</label>
+      <input class="input-text message-input" type="text" />
+      <label class="label">Time:</label>
+      <input class="input-time time-input" type="time" />
+      <button class="button" onclick="sendMessage()">Send</button>
+      <div class="remove-user" onclick="removeUser()">Remove User</div>
     </div>
 
     <script>
@@ -158,12 +161,21 @@
       let selectedUser = null;
       let mode = null;
       let userCount = 0;
-      const maxUsers = 2;
+
+      const modeSelect = document.querySelector(".mode-select");
+      const userList = document.querySelector(".user-list");
+      const createUserForm = document.querySelector(".create-user-form");
+      const sendMessageForm = document.querySelector(".send-message-form");
+      const usernamePrompt = document.querySelector(".username-prompt");
+      const urlInput = document.querySelector(".url-input");
+      const nameInput = document.querySelector(".name-input");
+      const messageInput = document.querySelector(".message-input");
+      const timeInput = document.querySelector(".time-input");
 
       function setMode(selectedMode) {
         mode = selectedMode;
-        document.getElementById("modeSelect").style.display = "none";
-        document.getElementById("createUserForm").style.display = "block";
+        modeSelect.classList.add("hidden");
+        createUserForm.classList.remove("hidden");
 
         if (mode === "talking") {
           userCount = 0;
@@ -172,60 +184,56 @@
       }
 
       function promptNextUser() {
-        const promptText = userCount === 0 ? "What is your username?" : "Enter another user's name:";
-        document.getElementById("usernamePrompt").innerText = promptText;
-        document.getElementById("usernamePrompt").style.display = "block";
-        document.getElementById("url").value = "";
-        document.getElementById("name").value = "";
+        usernamePrompt.textContent = userCount === 0 ? "What is your username?" : "Enter another user's name:";
+        usernamePrompt.classList.remove("hidden");
+        urlInput.value = "";
+        nameInput.value = "";
       }
 
       function createUser() {
-        const url = document.getElementById("url").value;
-        const name = document.getElementById("name").value;
+        const url = urlInput.value;
+        const name = nameInput.value;
         if (!url || !name) return;
 
-        const id = Date.now() + userCount; // todo: maybge just do usercount
-        const user = { url, name, id };
-        users.push(user);
+        const id = Date.now() + userCount;
+        users.push({ url, name, id });
         renderUsers();
 
         if (mode === "talking") {
           userCount++;
-          if (userCount == 1) {
-            initSelfUser(name, url, id);
-
+          if (userCount === 1) {
+            initSelfUser(name, url);
             promptNextUser();
           } else {
             initUser(name, url);
-
-            document.getElementById("createUserForm").style.display = "none";
-            document.getElementById("usernamePrompt").style.display = "none";
+            createUserForm.classList.add("hidden");
+            usernamePrompt.classList.add("hidden");
           }
         } else {
-          document.getElementById("usernamePrompt").style.display = "none";
+          usernamePrompt.classList.add("hidden");
         }
-        document.getElementById("url").value = "";
-        document.getElementById("name").value = "";
+
+        urlInput.value = "";
+        nameInput.value = "";
       }
 
       function renderUsers() {
-        const userList = document.getElementById("userList");
         userList.innerHTML = "";
 
         const plus = document.createElement("div");
         plus.className = "plus-user";
-        plus.innerHTML = "+";
+        plus.textContent = "+";
         plus.onclick = () => {
           selectedUser = null;
-          document.getElementById("sendMessageForm").style.display = "none";
-          document.getElementById("createUserForm").style.display = "block";
+          sendMessageForm.classList.add("hidden");
+          createUserForm.classList.remove("hidden");
         };
         userList.appendChild(plus);
 
         users.forEach((user, index) => {
           const div = document.createElement("div");
           div.className = "user";
-          div.innerHTML = `<img src="${user.url}" alt="${user.name}" /><span>${user.name}</span>`;
+          div.innerHTML = `<img class="user-avatar" src="${user.url}"><span>${user.name}</span>`;
           div.onclick = () => selectUser(index);
           userList.appendChild(div);
         });
@@ -233,17 +241,12 @@
 
       function selectUser(index) {
         selectedUser = users[index];
-        document.getElementById("createUserForm").style.display = "none";
-        document.getElementById("sendMessageForm").style.display = "block";
-
+        createUserForm.classList.add("hidden");
+        sendMessageForm.classList.remove("hidden");
         setDefaultTime();
 
-        const messageInput = document.getElementById("message");
         messageInput.focus();
-
-        messageInput.onkeydown = null;
-
-        messageInput.onkeydown = function (e) {
+        messageInput.onkeydown = (e) => {
           if (e.key === "Enter") {
             e.preventDefault();
             sendMessage();
@@ -253,61 +256,44 @@
       }
 
       function sendMessage() {
-        const msg = document.getElementById("message").value;
-        const time = document.getElementById("time").value;
-        if (!msg || !selectedUser) return;
+        if (!selectedUser || !messageInput.value) return;
 
         window.opener.postMessage(
           {
             type: "injectMessage",
             url: selectedUser.url,
             name: selectedUser.name,
-            message: msg,
+            message: messageInput.value,
             id: selectedUser.id,
-            time: time,
+            time: timeInput.value,
           },
           "*",
         );
 
-        document.getElementById("message").value = "";
+        messageInput.value = "";
       }
 
-      function initUser(name, avatarURL) {
-        window.opener.postMessage(
-          {
-            type: "initUser",
-            url: avatarURL,
-            name: name,
-          },
-          "*",
-        );
+      function initUser(name, url) {
+        window.opener.postMessage({ type: "initUser", name, url }, "*");
       }
-      function initSelfUser(name, avatarURL) {
-        window.opener.postMessage(
-          {
-            type: "initSelfUser",
-            url: avatarURL,
-            name: name,
-          },
-          "*",
-        );
+
+      function initSelfUser(name, url) {
+        window.opener.postMessage({ type: "initSelfUser", name, url }, "*");
       }
 
       function removeUser() {
         if (!selectedUser) return;
-        const index = users.findIndex((u) => u.id === selectedUser.id);
-        if (index > -1) users.splice(index, 1);
+        const i = users.findIndex((u) => u.id === selectedUser.id);
+        if (i > -1) users.splice(i, 1);
         selectedUser = null;
         renderUsers();
-        document.getElementById("sendMessageForm").style.display = "none";
-        document.getElementById("createUserForm").style.display = "block";
+        sendMessageForm.classList.add("hidden");
+        createUserForm.classList.remove("hidden");
       }
+
       function setDefaultTime() {
-        const timeInput = document.getElementById("time");
         const now = new Date();
-        const hours = now.getHours().toString().padStart(2, "0");
-        const minutes = now.getMinutes().toString().padStart(2, "0");
-        timeInput.value = `${hours}:${minutes}`;
+        timeInput.value = now.getHours().toString().padStart(2, "0") + ":" + now.getMinutes().toString().padStart(2, "0");
       }
     </script>
   </body>
