@@ -100,6 +100,13 @@ const load = async () => {
     .catch((error) => console.error("Error fetching the font file:", error));
 };
 
+const escapeFFmpegText = (text) => {
+  return text
+    .replace(/\\/g, "\\\\") // \ -> \\ //broken
+    .replace(/'/g, "\\'") // ' -> \'
+    .replace(/:/g, "\\:"); // : -> \:
+};
+
 const makeGif = async () => {
   if (hasFileDropped) {
     runBtn.setAttribute("disabled", true);
@@ -111,7 +118,8 @@ const makeGif = async () => {
 
     const drawTextFilters = lines
       .map((line, i) => {
-        return `drawtext=text='${line}':fontfile=DejaVuSans-Bold.ttf:fontcolor=black:fontsize=${fontSize}:x=(w-text_w)/2:y=${lineSpacing + i * (fontSize + lineSpacing)}`;
+        const cleanLine = escapeFFmpegText(line);
+        return `drawtext=text='${cleanLine}':fontfile=DejaVuSans-Bold.ttf:fontcolor=black:fontsize=${fontSize}:x=(w-text_w)/2:y=${lineSpacing + i * (fontSize + lineSpacing)}`;
       })
       .join(",");
 
@@ -145,10 +153,11 @@ const loadPreview = async () => {
     const fontSize = parseInt(inputSize.value);
     const lineSpacing = parseInt(lineSpacingValue.value, 10);
     const padHeight = lines.length * fontSize + lines.length * lineSpacing;
-
     const drawTextFilters = lines
       .map((line, i) => {
-        return `drawtext=text='${line}':fontfile=DejaVuSans-Bold.ttf:fontcolor=black:fontsize=${fontSize}:x=(w-text_w)/2:y=${lineSpacing + i * (fontSize + lineSpacing)}`;
+        const cleanLine = escapeFFmpegText(line);
+
+        return `drawtext=text='${cleanLine}':fontfile=DejaVuSans-Bold.ttf:fontcolor=black:fontsize=${fontSize}:x=(w-text_w)/2:y=${lineSpacing + i * (fontSize + lineSpacing)}`;
       })
       .join(",");
 
