@@ -21,12 +21,18 @@ function injectMessage(url, name, message, id, time) {
     return;
   }
   let html = "";
+  const escapedMessage = linkify(escapeHtml(message));
+  /*const emojiMessage = twemoji.parse(escapedMessage, {
+    folder: "svg",
+    ext: ".svg",
+  });*/
+
   if (id == lastId) {
     html = `
             <li>
                 <div class="cozyMessage__5126c wrapper_c19a55 cozy_c19a55 zalgo_c19a55">
                   <div class="contents_c19a55">
-                      <div class="markup__75297"><span>${escapeHtml(message)}</span></div>
+                      <div class="markup__75297"><span>${escapedMessage}</span></div>
                   </div>
                 </div>
             </li>
@@ -38,7 +44,7 @@ function injectMessage(url, name, message, id, time) {
                   <div class="contents_c19a55">
                       <img class="avatar_c19a55 clickable_c19a55" src="${escapeHtml(url)}">
                       <h3 class="header_c19a55"><span class="headerText_c19a55"><span class="username_c19a55 desaturateUserColors__41f68 clickable_c19a55">${escapeHtml(name)}</span></span><span class="timestamp_c19a55 timestampInline_c19a55"><i class="separator_c19a55"> — </i>${time}</span></h3>
-                      <div class="markup__75297 messageContent_c19a55"><span>${escapeHtml(message)}</span></div>
+                      <div class="markup__75297 messageContent_c19a55"><span>${escapedMessage}</span></div>
                   </div>
                 </div>
             </li>
@@ -47,6 +53,12 @@ function injectMessage(url, name, message, id, time) {
 
   let temp = document.createElement("div");
   temp.innerHTML = html;
+
+  twemoji.parse(temp, {
+    folder: "svg",
+    ext: ".svg",
+  });
+
   target.appendChild(temp.firstElementChild);
   lastId = id;
   let spacer = target.querySelector(".scrollerSpacer__36d07");
@@ -100,4 +112,7 @@ function initSelfUser(name, avatarURL, id) {
 
 function escapeHtml(unsafe) {
   return String(unsafe).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+}
+function linkify(text) {
+  return text.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>');
 }

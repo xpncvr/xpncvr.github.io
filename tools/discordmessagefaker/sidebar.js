@@ -43,10 +43,10 @@ function createUser() {
   if (mode === "talking") {
     userCount++;
     if (userCount === 1) {
-      initSelfUser(name, url);
+      callInitSelfUser(name, url);
       promptNextUser();
     } else {
-      initUser(name, url);
+      callInitUser(name, url);
       createUserForm.classList.add("hidden");
       usernamePrompt.classList.add("hidden");
     }
@@ -114,11 +114,11 @@ function sendMessage() {
   messageInput.value = "";
 }
 
-function initUser(name, url) {
+function callInitUser(name, url) {
   window.postMessage({ type: "initUser", name, url }, "*");
 }
 
-function initSelfUser(name, url) {
+function callInitSelfUser(name, url) {
   window.postMessage({ type: "initSelfUser", name, url }, "*");
 }
 

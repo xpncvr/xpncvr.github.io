@@ -114,7 +114,7 @@ const makeGif = async () => {
     const lines = inputTxt.value.split("\n");
     const fontSize = parseInt(inputSize.value);
     const lineSpacing = parseInt(lineSpacingValue.value, 10);
-    const padHeight = lines.length * fontSize + lines.length * lineSpacing;
+    const padHeight = lines.length * fontSize + lines.length * lineSpacing + 5;
 
     const drawTextFilters = lines
       .map((line, i) => {
@@ -152,7 +152,7 @@ const loadPreview = async () => {
     const lines = inputTxt.value.split("\n");
     const fontSize = parseInt(inputSize.value);
     const lineSpacing = parseInt(lineSpacingValue.value, 10);
-    const padHeight = lines.length * fontSize + lines.length * lineSpacing;
+    const padHeight = lines.length * fontSize + lines.length * lineSpacing + 5;
     const drawTextFilters = lines
       .map((line, i) => {
         const cleanLine = escapeFFmpegText(line);

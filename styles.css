@@ -86,3 +86,11 @@ body {
 .popup:hover {
   display: block;
 }
+
+.mod-icon {
+  width: 80px;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  margin-top: 5dvh;
+  border-radius: 10px;
+}

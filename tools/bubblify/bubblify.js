@@ -1,12 +1,15 @@
 "use strict";
 // based from https://github.com/ffmpegwasm/ffmpeg.wasm/discussions/580
 var ffmpeg = null;
+var betterWhiteBtn = null;
 var loadBtn = null;
 var lineSpacingValue = null;
 var loadProrgess = null;
 var loader = null;
 var resetBtn = null;
 var downloadBtn = null;
+var inputTxt = null;
+var inputSize = null;
 var logDiv = null;
 var originalImg = null;
 var previewImg = null;
@@ -81,6 +84,7 @@ const load = async () => {
   loader.style.display = "none";
   console.log("ffmpeg.load success");
   ffmpegLoaded = true;
+  betterWhiteBtn.removeAttribute("disabled");
 
   fetch("https://xpncvr.github.io/assets/images/discord-bubble-template.png")
     .then((response) => response.arrayBuffer())
@@ -101,6 +105,8 @@ const escapeFFmpegText = (text) => {
 
 const makeImage = async () => {
   if (!hasFileDropped) return;
+
+  const bubbleHeight = parseInt(inputSize.value, 10);
 
   if (!inputFileName) throw new Error("No input image");
 
@@ -128,6 +134,7 @@ const reset = async () => {
   previewImg.classList.add("hidden");
   originalImg.src = "";
   previewImg.src = "";
+  inputSize.value = 35;
   downloadBtn.setAttribute("disabled", true);
 };
 
@@ -220,6 +227,12 @@ addEventListener("load", async (event) => {
   loader = document.querySelector("#loader");
   loader.style.display = "none";
 
+  betterWhiteBtn = document.querySelector("#better-white");
+  betterWhiteBtn.addEventListener("click", () => {
+    betterWhite = !betterWhite;
+  });
+  betterWhiteBtn.setAttribute("disabled", true);
+
   lineSpacingValue = document.querySelector("#line-spacing");
 
   resetBtn = document.querySelector("#reset-button");
@@ -233,6 +246,10 @@ addEventListener("load", async (event) => {
   originalImg = document.querySelector("#original-image");
   previewArea = document.querySelector("#preview-area");
   previewImg = document.querySelector("#result-image");
+
+  inputTxt = document.querySelector("#text-input");
+  inputSize = document.querySelector("#input-size");
+  inputSize.addEventListener("keydown", onTextEnter);
 
   dropArea = document.querySelector("#drop-area");
   dropArea.addEventListener("dragover", (e) => e.preventDefault());
